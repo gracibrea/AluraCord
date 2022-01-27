@@ -1,10 +1,29 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js';
+
+// Como fazer AJAX: https://medium.com/@omariosouto/entendendo-como-fazer-ajax-com-a-fetchapi-977ff20da3c6
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwNzUxMCwiZXhwIjoxOTU4ODgzNTEwfQ.2aBbRoHRp8XLer2sYXTe5epDjrSnRzEK87NIjn06a_s';
+const SUPABASE_URL = 'https://xkxhoohwulknxpxbonbe.supabase.co';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
     const [mensagem, setMensagem] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
+
+    React.useEffect(() =>{
+        supabaseClient
+            .from('mensagens')
+            .select('*')
+            //.order('id', { ascending: false }) Caso estivesse invertendo a ordem sob refresh da página, isso resolveria. No meu caso não precisa porque a ordem depois do refresh já estava ok.
+            .then(({ data }) => {
+                console.log('Dados da consuta:', data);
+                setListaDeMensagens(data);
+            });
+    }, []);
+
+    
     /*
     //Usuário
     - Usuário digita no campo textearea
@@ -19,14 +38,25 @@ export default function ChatPage() {
     */
 function handleNovaMensagem(novaMensagem) {
     const mensagem = {
-        id: listaDeMensagens.length + 1,
+        // id: listaDeMensagens.length + 1,
         de: 'gracibrea',
         texto: novaMensagem,
-    }
-    setListaDeMensagens([
-        ...listaDeMensagens,
-        mensagem, //invertendo esta ordem, não precisa mexer no column-reverse do css
-    ]);
+    };
+
+    supabaseClient
+        .from('mensagens')
+        .insert([
+            // Tem que ser um objeto com os MESMOS CAMPOS que você escreveu no supabase
+            mensagem            
+        ])
+        .then(({ data }) => {
+            console.log('Criando mensagem: ', data);
+            setListaDeMensagens([
+                ...listaDeMensagens,
+                data[0], //invertendo esta ordem, não precisa mexer no column-reverse do css
+            ]);
+        });
+    
     setMensagem('');
 }
     return (
@@ -177,7 +207,7 @@ function MessageList(props) {
                                 display: 'inline-block',
                                 marginRight: '8px',
                             }}
-                            src={`https://github.com/gracibrea.png`}
+                            src={`https://github.com/${mensagem.de}.png`}
                         />
                         <Text tag="strong">
                             {mensagem.de}
