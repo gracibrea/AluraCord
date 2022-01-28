@@ -2,6 +2,7 @@ import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
 import { createClient } from '@supabase/supabase-js';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
 // Como fazer AJAX: https://medium.com/@omariosouto/entendendo-como-fazer-ajax-com-a-fetchapi-977ff20da3c6
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwNzUxMCwiZXhwIjoxOTU4ODgzNTEwfQ.2aBbRoHRp8XLer2sYXTe5epDjrSnRzEK87NIjn06a_s';
@@ -10,7 +11,13 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
     const [mensagem, setMensagem] = React.useState('');
-    const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
+    const [listaDeMensagens, setListaDeMensagens] = React.useState([
+        //{
+        //    id: 1,
+        //    de: 'gracibrea',
+        //    texto: ':sticker: https://www.alura.com.br/imersao-react-4/assets/figurinhas/Figurinha_1.png',
+        //}
+    ]);
 
     React.useEffect(() =>{
         supabaseClient
@@ -141,6 +148,13 @@ function handleNovaMensagem(novaMensagem) {
                                 color: appConfig.theme.colors.neutrals[200],   
                             }}
                         />
+                        {/* CallBack */}
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                console.log('[USANDO O COMPONENTE] Salva esse sticker no banco', sticker);
+                                handleNovaMensagem(':sticker:' + sticker);
+                            }}
+                         />
                     </Box>
                 </Box>
             </Box>
@@ -172,7 +186,7 @@ function MessageList(props) {
         <Box
             tag="ul"
             styleSheet={{
-                overflow: '', //estava scrol
+                overflowY: 'scroll', //estava scroll
                 display: 'flex',
                 flexDirection: 'column', //estava column-reverse
                 flex: 1,
@@ -223,7 +237,16 @@ function MessageList(props) {
                             {(new Date().toLocaleDateString())}
                         </Text>
                     </Box>
-                    {mensagem.texto}
+                    {/* Declarativo */}
+                    {/*Condicional: {mensagem.texto.startsWith(':stiker:').toString()}*/}
+                    {mensagem.texto.startsWith(':sticker:')
+                    ? (
+                        <Image src={mensagem.texto.replace(':sticker:', '')} />
+                    )
+                    : (
+                        mensagem.texto
+                    )}
+
                 </Text>
 
                 );
