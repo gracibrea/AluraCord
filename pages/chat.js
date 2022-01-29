@@ -9,6 +9,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5v
 const SUPABASE_URL = 'https://xkxhoohwulknxpxbonbe.supabase.co';
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', ( respostaLive ) => {
+            adicionaMensagem(respostaLive.new);
+        })
+        .subscribe();
+}
+
 export default function ChatPage() {
     const [mensagem, setMensagem] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([
@@ -28,6 +37,16 @@ export default function ChatPage() {
                 console.log('Dados da consuta:', data);
                 setListaDeMensagens(data);
             });
+
+        escutaMensagensEmTempoReal((novaMensagem) => {
+            console.log('Nova Mensagem:', novaMensagem);
+            setListaDeMensagens((valorAtualDaLista) => {
+                return [
+                    ...valorAtualDaLista,
+                    novaMensagem, //invertendo esta ordem, não precisa mexer no column-reverse do css
+                ]
+            });
+        });
     }, []);
 
     
@@ -58,23 +77,19 @@ function handleNovaMensagem(novaMensagem) {
         ])
         .then(({ data }) => {
             console.log('Criando mensagem: ', data);
-            setListaDeMensagens([
-                ...listaDeMensagens,
-                data[0], //invertendo esta ordem, não precisa mexer no column-reverse do css
-            ]);
         });
     
     setMensagem('');
 }
     return (
         <Box
-            styleSheet={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backgroundColor: appConfig.theme.colors.primary[500],
-                backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
-                backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
-                color: appConfig.theme.colors.neutrals['000']
-            }}
+        styleSheet={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: appConfig.theme.colors.primary[500],
+            backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
+            backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
+            color: appConfig.theme.colors.neutrals['000']
+        }}
         >
             <Box
                 styleSheet={{
